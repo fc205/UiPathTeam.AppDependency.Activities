@@ -1,13 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 using System.Activities;
 using System.ComponentModel;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json;
 using System.Diagnostics;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Json;
 
 namespace UiPathTeam.AppDependency.Activities
 {
@@ -24,11 +22,29 @@ namespace UiPathTeam.AppDependency.Activities
         {
             var i_path = iPath.Get(context);
 
-            JObject anAppDependency = JObject.Parse(System.IO.File.ReadAllText(i_path));
+            string json = File.ReadAllText(i_path);
 
-            AppDependencyContainer result = anAppDependency.ToObject<AppDependencyContainer>();
+            if(json.Length == 0)
+            {
+                Console.WriteLine("Empty json. Exiting...");
+            }
 
-            foreach (AppDependency anApp in result.applicationDependencies)
+            AppDependencyContainer deserialisedAppDependency = new AppDependencyContainer();
+
+            try
+            {
+
+                MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(json));
+                DataContractJsonSerializer ser = new DataContractJsonSerializer(deserialisedAppDependency.GetType());
+                deserialisedAppDependency = ser.ReadObject(ms) as AppDependencyContainer;
+                ms.Close();
+            }
+            catch(Exception e)
+            {
+                throw new Exception("Malformed Json input file", e);
+            }
+
+            foreach (AppDependency anApp in deserialisedAppDependency.applicationDependencies)
             {
                 // For each dependency
 
@@ -60,10 +76,14 @@ namespace UiPathTeam.AppDependency.Activities
         }
     }
 
-    public class AppDependency
+    [DataContract]
+    internal class AppDependency
     {
+        [DataMember]
         public string Name;
+        [DataMember]
         public string Location;
+        [DataMember]
         public string[] Versions;
 
         public string getCurrentAppVersion()
@@ -78,8 +98,10 @@ namespace UiPathTeam.AppDependency.Activities
         }
     }
 
-    public class AppDependencyContainer
+    [DataContract]
+    internal class AppDependencyContainer
     {
+        [DataMember]
         public AppDependency[] applicationDependencies;
     }
 }
