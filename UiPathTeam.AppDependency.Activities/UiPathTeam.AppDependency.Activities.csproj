@@ -52,6 +52,6 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>C:\Users\Administrator\Documents\nuget.exe pack $(ProjectPath) -Symbols -Properties Configuration=$(ConfigurationName) -IncludeReferencedProjects -Version 1.0.3</PostBuildEvent>
+    <PostBuildEvent>C:\Users\Administrator\Documents\nuget.exe pack $(ProjectPath) -Symbols -Properties Configuration=$(ConfigurationName) -IncludeReferencedProjects -Version 1.0.5</PostBuildEvent>
   </PropertyGroup>
 </Project>

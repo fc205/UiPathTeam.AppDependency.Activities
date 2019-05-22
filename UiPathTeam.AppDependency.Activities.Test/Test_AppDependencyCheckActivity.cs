@@ -24,7 +24,8 @@ namespace UiPathTeam.AppDependency.Activities.Test
 
             var checkAppDependencyActivity = new AppDependencyCheckActivity
             {
-                iPath = Test_DummyPath
+                InputPath = Test_DummyPath,
+                RaiseExceptions = false
             };
 
             var output = WorkflowInvoker.Invoke(checkAppDependencyActivity);

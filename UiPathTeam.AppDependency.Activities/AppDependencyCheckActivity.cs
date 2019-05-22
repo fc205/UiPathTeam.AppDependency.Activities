@@ -13,20 +13,25 @@ namespace UiPathTeam.AppDependency.Activities
     [DisplayName("Check 3rd party application dependencies")]
     public class AppDependencyCheckActivity : CodeActivity
     {
-        [Category("Input")]
         [RequiredArgument]
+        [Category("Input")]
         [Description("Path to the location of the appdependencies.json file.")]
-        public InArgument<string> iPath { get; set; }
+        public InArgument<string> InputPath { get; set; }
+
+        [Category("Input")]
+        [Description("Raises an exception when the application doesn't exist or when the version is wrong, otherwise displays a message in the console.")]
+        public bool RaiseExceptions { get; set; }
 
         protected override void Execute(CodeActivityContext context)
         {
-            var i_path = iPath.Get(context);
+            var i_path = InputPath.Get(context);
 
             string json = File.ReadAllText(i_path);
 
             if(json.Length == 0)
             {
                 Console.WriteLine("Empty json. Exiting...");
+                return;
             }
 
             AppDependencyContainer deserialisedAppDependency = new AppDependencyContainer();
@@ -52,7 +57,17 @@ namespace UiPathTeam.AppDependency.Activities
                 if(!System.IO.File.Exists(anApp.Location))
                 {
                     // If it doesn't, throw exception
-                    throw new Exception("App location doesn't exist: "+ anApp.Name + " : " + anApp.Location);
+                    string message = "Application location doesn't exist: " + anApp.Name + " : " + anApp.Location;
+                    Console.WriteLine(message);
+
+                    if (RaiseExceptions)
+                    {
+                        throw new Exception(message);
+                    }
+                    else
+                    {
+                        continue;
+                    }
                 }
 
                 string currentAppVersion = anApp.getCurrentAppVersion();
@@ -68,10 +83,15 @@ namespace UiPathTeam.AppDependency.Activities
 
                 if(!versionValid)
                 {
-                    throw new Exception("App version is not valid: " + anApp.Name + " : " + currentAppVersion);
+                    string message = "Application version is NOT valid: " + anApp.Name + " : " + currentAppVersion;
+                    Console.WriteLine(message);
+                    if (RaiseExceptions)
+                    {
+                        throw new Exception(message);
+                    }
                 }
 
-                Console.WriteLine("App version is valid: " + anApp.Name + " : " + currentAppVersion);
+                Console.WriteLine("Application version is valid: " + anApp.Name + " : " + currentAppVersion);
             }
         }
     }
